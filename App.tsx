@@ -39,7 +39,10 @@ function App(): JSX.Element {
           ref={webview}
           style={styles.webview}
           // SSL 없는 주소의 경우, 터미널에 adb reverse tcp:5173 tcp:5173 입력
-          source={{ uri: 'http://localhost:5173' }}
+          // source={{ uri: 'http://localhost:5173' }}
+          source={{
+            uri: 'http://brain-vitamin-web-front-deploy.s3-website.ap-northeast-2.amazonaws.com',
+          }}
           injectedJavaScript={`
         (function() {
           function wrap(fn) {
