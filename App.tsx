@@ -1,11 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Dimensions, SafeAreaView, StyleSheet } from 'react-native';
+import {
+  Dimensions,
+  SafeAreaView,
+  StyleSheet,
+  BackHandler,
+  StatusBar,
+} from 'react-native';
 import { WebView } from 'react-native-webview';
-import { BackHandler } from 'react-native';
 import DismissKeyboardView from './src/components/DismissKeyboardView';
 
 const deviceHeight = Dimensions.get('window').height;
 const deviceWidth = Dimensions.get('window').width;
+const statusBarHeight = StatusBar.currentHeight;
 
 function App(): JSX.Element {
   const webview = useRef<WebView>(null);
@@ -83,7 +89,7 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
     width: deviceWidth,
-    height: deviceHeight,
+    height: deviceHeight - statusBarHeight,
   },
 });
 
