@@ -89,7 +89,8 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
     width: deviceWidth,
-    height: deviceHeight - statusBarHeight,
+    height:
+      deviceWidth < 601 ? deviceHeight : deviceHeight - (statusBarHeight ?? 0),
   },
 });
 
