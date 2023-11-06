@@ -5,9 +5,11 @@ import {
   StyleSheet,
   BackHandler,
   StatusBar,
+  ToastAndroid,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import DismissKeyboardView from './src/components/DismissKeyboardView';
+import RNExitApp from 'react-native-exit-app';
 
 const deviceHeight = Dimensions.get('window').height;
 const deviceWidth = Dimensions.get('window').width;
@@ -15,15 +17,30 @@ const statusBarHeight = StatusBar.currentHeight;
 
 function App(): JSX.Element {
   const webview = useRef<WebView>(null);
-  const [isCanGoBack, setIsCanGoBack] = useState(false);
+  const [url, setUrl] = useState('');
+  const time = useRef(0);
 
   useEffect(() => {
     const onPressHardwareBackButton = () => {
-      if (webview.current && isCanGoBack) {
+      if (!webview.current) {
+        return false;
+      }
+      if (url === '/home' || url === '/logIn') {
+        time.current++;
+        if (time.current === 1) {
+          ToastAndroid.show(
+            "'뒤로' 버튼을 한 번 더 누르시면 종료됩니다.",
+            ToastAndroid.SHORT,
+          );
+          setTimeout(() => (time.current = 0), 2000);
+          return true;
+        } else if (time.current >= 2) {
+          RNExitApp.exitApp();
+          return false;
+        }
+      } else {
         webview.current.goBack();
         return true;
-      } else {
-        return false;
       }
     };
     BackHandler.addEventListener(
@@ -36,7 +53,7 @@ function App(): JSX.Element {
         onPressHardwareBackButton,
       );
     };
-  }, [isCanGoBack]);
+  }, [url]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,8 +87,7 @@ function App(): JSX.Element {
       `}
           onMessage={({ nativeEvent: state }) => {
             if (state.data === 'navigationStateChange') {
-              // Navigation state updated, can check state.canGoBack, etc.
-              setIsCanGoBack(state.canGoBack);
+              setUrl(state.url.split('com')[1]);
             }
           }}
         />
