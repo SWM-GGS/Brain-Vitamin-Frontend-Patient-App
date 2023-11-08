@@ -10,6 +10,7 @@ import {
 import { WebView } from 'react-native-webview';
 import DismissKeyboardView from './src/components/DismissKeyboardView';
 import RNExitApp from 'react-native-exit-app';
+import Orientation from 'react-native-orientation-locker';
 
 const deviceHeight = Dimensions.get('window').height;
 const deviceWidth = Dimensions.get('window').width;
@@ -19,6 +20,14 @@ function App(): JSX.Element {
   const webview = useRef<WebView>(null);
   const [url, setUrl] = useState('');
   const time = useRef(0);
+
+  useEffect(() => {
+    if (deviceWidth < 601) {
+      Orientation.lockToPortrait();
+    } else {
+      Orientation.lockToLandscape();
+    }
+  }, []);
 
   useEffect(() => {
     const onPressHardwareBackButton = () => {
