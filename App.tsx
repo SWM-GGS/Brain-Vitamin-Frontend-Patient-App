@@ -11,6 +11,7 @@ import { WebView } from 'react-native-webview';
 import DismissKeyboardView from './src/components/DismissKeyboardView';
 import RNExitApp from 'react-native-exit-app';
 import Orientation from 'react-native-orientation-locker';
+import { PERMISSIONS, RESULTS, request, check } from 'react-native-permissions';
 
 const deviceHeight = Dimensions.get('window').height;
 const deviceWidth = Dimensions.get('window').width;
@@ -27,6 +28,10 @@ function App(): JSX.Element {
     } else {
       Orientation.lockToLandscape();
     }
+
+    return () => {
+      Orientation.unlockAllOrientations();
+    };
   }, []);
 
   useEffect(() => {
@@ -64,14 +69,59 @@ function App(): JSX.Element {
     };
   }, [url]);
 
+  const requestPermission = () => {
+    request(PERMISSIONS.ANDROID.RECORD_AUDIO).then((response) => {
+      console.log(response);
+    });
+  };
+
+  const checkPermission = () => {
+    check(PERMISSIONS.ANDROID.RECORD_AUDIO)
+      .then((result) => {
+        switch (result) {
+          case RESULTS.UNAVAILABLE:
+            ToastAndroid.show(
+              '해당 기기에서 녹음 기능을 사용할 수 없습니다.',
+              ToastAndroid.SHORT,
+            );
+            break;
+          case RESULTS.DENIED:
+            ToastAndroid.show(
+              '녹음 권한이 요청되지 않았거나, 거부되었지만 요청할 수 있습니다.',
+              ToastAndroid.SHORT,
+            );
+            break;
+          case RESULTS.LIMITED:
+            ToastAndroid.show(
+              '녹음 권한이 제한되어 있습니다. 일부 작업이 가능합니다.',
+              ToastAndroid.SHORT,
+            );
+            break;
+          case RESULTS.GRANTED:
+            ToastAndroid.show(
+              '녹음 권한이 허가되었습니다.',
+              ToastAndroid.SHORT,
+            );
+            break;
+          case RESULTS.BLOCKED:
+            ToastAndroid.show(
+              '녹음 권한이 거부되었으며, 앱 설정에서 허가할 수 있습니다.',
+              ToastAndroid.SHORT,
+            );
+            break;
+        }
+      })
+      .catch((error) => {
+        console.log('PERMISSION ERROR : ', error);
+      });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <DismissKeyboardView>
         <WebView
           ref={webview}
           style={styles.webview}
-          // SSL 없는 주소의 경우, 터미널에 adb reverse tcp:5173 tcp:5173 입력
-          // source={{ uri: 'http://localhost:5173' }}
           source={{
             uri: 'https://dqr7en7diq4ph.cloudfront.net',
           }}
@@ -96,7 +146,12 @@ function App(): JSX.Element {
       `}
           onMessage={({ nativeEvent: state }) => {
             if (state.data === 'navigationStateChange') {
-              setUrl(state.url.split('com')[1]);
+              const currentUrl = state.url.split('net')[1];
+              if (currentUrl === '/screeningTest') {
+                requestPermission();
+                checkPermission();
+              }
+              setUrl(currentUrl);
             }
           }}
         />
